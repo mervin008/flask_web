@@ -1,18 +1,17 @@
 import os
-from flask import Flask, render_template, request, g, redirect, url_for, flash
-from db import get_db, init_db, close_db
+from flask import Flask, render_template, request, g, redirect, url_for
 import markdown
 import mistune
+import mysql.connector
 
 app = Flask(__name__)
-app.config['DATABASE'] = os.path.join(app.root_path, 'blog.db')
-app.config['SECRET_KEY'] = 'your_secret_key'
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'your_strong_secret_key')
 
-# Import db module, not individual functions
-import db
-
-# Initialize database and register close_db
-db.init_app(app)
+# Database configuration (from environment variables)
+app.config['DATABASE_HOST'] = os.environ.get('DATABASE_HOST')
+app.config['DATABASE_NAME'] = os.environ.get('DATABASE_NAME')
+app.config['DATABASE_USER'] = os.environ.get('DATABASE_USER')
+app.config['DATABASE_PASSWORD'] = os.environ.get('DATABASE_PASSWORD')
 
 @app.teardown_appcontext
 def close_connection(exception):
@@ -20,17 +19,28 @@ def close_connection(exception):
     if db is not None:
         db.close()
 
+def get_db():
+    if 'db' not in g:
+        g.db = mysql.connector.connect(
+            host=app.config['DATABASE_HOST'],
+            database=app.config['DATABASE_NAME'],
+            user=app.config['DATABASE_USER'],
+            password=app.config['DATABASE_PASSWORD']
+        )
+    return g.db
+
+
 def get_posts():
     db = get_db()
-    cursor = db.cursor()
+    cursor = db.cursor(dictionary=True)  # Use dictionary=True
     cursor.execute('SELECT * FROM posts ORDER BY created_at DESC')
     posts = cursor.fetchall()
     return posts
 
 def get_post(post_id):
     db = get_db()
-    cursor = db.cursor()
-    cursor.execute('SELECT * FROM posts WHERE id = ?', (post_id,))
+    cursor = db.cursor(dictionary=True)  # Use dictionary=True
+    cursor.execute('SELECT * FROM posts WHERE id = %s', (post_id,))
     post = cursor.fetchone()
     return post
 
@@ -43,9 +53,8 @@ def index():
 def show_post(post_id):
     post = get_post(post_id)
     if post:
-        post = dict(post)
         post['content'] = mistune.markdown(post['content'])
-        return render_template('post.html', post=post,  post_id=post_id)
+        return render_template('post.html', post=post, post_id=post_id)
     else:
         return 'Post not found', 404
 
@@ -59,7 +68,7 @@ def create_post():
         db = get_db()
         cursor = db.cursor()
         cursor.execute(
-            'INSERT INTO posts (title, short_desc, content) VALUES (?, ?, ?)',
+            'INSERT INTO posts (title, short_desc, content) VALUES (%s, %s, %s)',
             (title, short_desc, content)
         )
         db.commit()
@@ -70,27 +79,26 @@ def create_post():
 @app.route('/edit/<int:post_id>', methods=['GET', 'POST'])
 def edit_post(post_id):
     post = get_post(post_id)
+
     if post:
-        post = dict(post)
         if request.method == 'POST':
-            post['title'] = request.form['title']
-            post['short_desc'] = request.form['short_desc']
-            post['content'] = request.form['content']
+            title = request.form['title']
+            short_desc = request.form['short_desc']
+            content = request.form['content']
 
             db = get_db()
             cursor = db.cursor()
             cursor.execute(
-                'UPDATE posts SET title = ?, short_desc = ?, content = ? WHERE id = ?',
-                (post['title'], post['short_desc'], post['content'], post_id)
+                'UPDATE posts SET title = %s, short_desc = %s, content = %s WHERE id = %s',
+                (title, short_desc, content, post_id)
             )
             db.commit()
 
-            flash('Post updated successfully!', 'success')  # Add a flash message
-            return redirect(url_for('show_post', post_id=post_id))  # Redirect to the post
-        return render_template('edit.html', post=post)
+            return redirect(url_for('show_post', post_id=post_id))
+        else:
+            return render_template('edit.html', post=post)
     else:
         return 'Post not found', 404
-
 
 if __name__ == '__main__':
     app.run(debug=True)

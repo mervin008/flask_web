@@ -2,3 +2,4 @@ flask
 markdown
 mistune
 mysql.connector
+gunicorn

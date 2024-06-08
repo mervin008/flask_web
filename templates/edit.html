@@ -1,34 +1,29 @@
 {% extends 'base.html' %}
 
 {% block content %}
-    <h1 class="text-3xl font-bold mb-4">Edit Post</h1>
+<div class="max-w-md mx-auto p-6 bg-white rounded-lg shadow-md">
+    <h2 class="text-xl font-bold mb-4">Edit Post</h2>
 
-    {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            <ul class="mt-4">
-                {% for category, message in messages %}
-                    <li class="bg-{{ category }}-500 text-white font-bold p-2 rounded">{{ message }}</li>
-                {% endfor %}
-            </ul>
-        {% endif %}
-    {% endwith %}
-
-    <form method="POST">
+    <form method="POST" action="/edit/{{ post['id'] }}">
         <div class="mb-4">
-            <label for="title" class="block text-gray-700 font-bold mb-2">Title</label>
-            <input type="text" id="title" name="title" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" value="{{ post['title'] }}" required>
+            <label for="title" class="block text-gray-700 font-bold mb-2">Title:</label>
+            <input type="text" name="title" id="title" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" value="{{ post['title'] }}" required>
         </div>
         <div class="mb-4">
-            <label for="short_desc" class="block text-gray-700 font-bold mb-2">Short Description</label>
-            <textarea id="short_desc" name="short_desc" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>{{ post['short_desc'] }}</textarea>
+            <label for="short_desc" class="block text-gray-700 font-bold mb-2">Short Description:</label>
+            <textarea name="short_desc" id="short_desc" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">{{ post['short_desc'] }}</textarea>
         </div>
         <div class="mb-4">
-            <label for="content" class="block text-gray-700 font-bold mb-2">Content (Markdown)</label>
-            <textarea id="content" name="content" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>{{ post['content'] }}</textarea>
+            <label for="content" class="block text-gray-700 font-bold mb-2">Content:</label>
+            <textarea name="content" id="content" 
+          class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" 
+          rows="15" required>{{ post.get('content', '') }}</textarea>
         </div>
-        <div class="flex space-x-4 mt-4">
-            <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus-shadow-outline">Save Changes</button>
-            <a href="/" class="inline-block px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">Back to Home</a>
+        <div class="flex justify-between">
+            <a href="/post/{{ post['id'] }}" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded flex items-center space-x-2">
+                <i class="fas fa-arrow-left"></i> <span>Back</span> </a>
+            <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Update Post</button>
         </div>
     </form>
+</div>
 {% endblock %}

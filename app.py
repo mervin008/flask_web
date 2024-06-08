@@ -3,6 +3,7 @@ from flask import Flask, render_template, request, g, redirect, url_for
 import markdown
 import mistune
 import mysql.connector
+from datetime import datetime 
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'your_strong_secret_key')
@@ -45,17 +46,24 @@ def get_post(post_id):
     post = cursor.fetchone()
     return post
 
-@app.route('/')
-def index():
-    posts = get_posts()
-    return render_template('index.html', posts=posts)
-
 @app.route('/post/<int:post_id>')
 def show_post(post_id):
     post = get_post(post_id)
     if post:
         post['content'] = mistune.markdown(post['content'])
-        return render_template('post.html', post=post, post_id=post_id)
+
+        # Get previous and next post IDs
+        db = get_db()
+        cursor = db.cursor()
+        cursor.execute('SELECT id FROM posts WHERE id < %s ORDER BY id DESC LIMIT 1', (post_id,))
+        prev_post_id = cursor.fetchone()
+        cursor.execute('SELECT id FROM posts WHERE id > %s ORDER BY id ASC LIMIT 1', (post_id,))
+        next_post_id = cursor.fetchone()
+
+        # Pass post IDs to the template
+        return render_template('post.html', post=post, post_id=post_id,
+                               prev_post_id=prev_post_id[0] if prev_post_id else None,
+                               next_post_id=next_post_id[0] if next_post_id else None)
     else:
         return 'Post not found', 404
 
@@ -100,6 +108,19 @@ def edit_post(post_id):
             return render_template('edit.html', post=post)
     else:
         return 'Post not found', 404
+    
+
+@app.context_processor  
+def inject_year():
+    return dict(year=datetime.now().year) 
+
+
+
+
+@app.route('/')
+def index():
+    posts = get_posts()
+    return render_template('index.html', posts=posts)
 
 if __name__ == '__main__':
     app.run(debug=True)

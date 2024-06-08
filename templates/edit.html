@@ -1,29 +1,78 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="max-w-md mx-auto p-6 bg-white rounded-lg shadow-md">
-    <h2 class="text-xl font-bold mb-4">Edit Post</h2>
+<div class="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-md"> 
+    <h2 class="text-2xl font-bold mb-4 text-gray-800">Edit Post</h2>
 
-    <form method="POST" action="/edit/{{ post['id'] }}">
+    <form method="POST" action="{{ url_for('edit_post', post_id=post['id']) }}">
         <div class="mb-4">
             <label for="title" class="block text-gray-700 font-bold mb-2">Title:</label>
-            <input type="text" name="title" id="title" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" value="{{ post['title'] }}" required>
+            <input type="text" name="title" id="title" 
+                   class="shadow appearance-none border border-gray-300 rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring focus:ring-violet-300" 
+                   value="{{ post['title'] }}" required>
         </div>
+
         <div class="mb-4">
             <label for="short_desc" class="block text-gray-700 font-bold mb-2">Short Description:</label>
-            <textarea name="short_desc" id="short_desc" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">{{ post['short_desc'] }}</textarea>
+            <textarea name="short_desc" id="short_desc" 
+                      class="shadow appearance-none border border-gray-300 rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring focus:ring-violet-300" 
+                      rows="3">{{ post['short_desc'] }}</textarea>
         </div>
-        <div class="mb-4">
-            <label for="content" class="block text-gray-700 font-bold mb-2">Content:</label>
-            <textarea name="content" id="content" 
-          class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" 
-          rows="15" required>{{ post.get('content', '') }}</textarea>
+
+        <div class="mb-4 flex justify-between items-center"> 
+            <label for="content" class="block text-gray-700 font-bold mb-2">Content (Markdown):</label>
+            <button type="button" id="previewButton" class="btn btn-preview p-2 rounded-full"> 
+                <i class="fas fa-eye"></i> <span>Preview</span> 
+            </button>
         </div>
-        <div class="flex justify-between">
-            <a href="/post/{{ post['id'] }}" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded flex items-center space-x-2">
-                <i class="fas fa-arrow-left"></i> <span>Back</span> </a>
-            <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Update Post</button>
+        <textarea name="content" id="content" 
+                  class="shadow appearance-none border border-gray-300 rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring focus:ring-violet-300" 
+                  rows="15" required>{{ post['content'] }}</textarea>
+
+        <div class="flex justify-between space-x-4 mt-6"> 
+            <a href="/" class="btn btn-secondary post-link flex items-center space-x-2">
+                <i class="fas fa-arrow-left"></i> <span>Back</span> 
+            </a>
+            <button type="submit" class="btn btn-primary flex items-center space-x-2">
+                <i class="fas fa-save"></i> <span>Update Post</span> 
+            </button>
         </div>
     </form>
 </div>
+
+<div id="previewModal" class="fixed inset-0 z-10 bg-black bg-opacity-50 flex items-center justify-center hidden">
+    <div class="bg-white rounded-lg shadow-lg p-6 max-w-2xl w-full relative" style="max-height: 90vh;"> 
+        <h3 class="text-xl font-bold mb-4 text-gray-800">Preview content:</h3>
+        <div id="preview-content" class="prose lg:prose-xl overflow-y-auto" style="max-height: 60vh;"> </div> 
+        <button type="button" id="closePreview" class="absolute top-4 right-4 text-gray-600 hover:text-gray-800 focus:outline-none">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+</div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script>
+    const contentTextarea = document.getElementById('content');
+    const previewContent = document.getElementById('preview-content');
+    const previewButton = document.getElementById('previewButton');
+    const markdownPreview = document.getElementById('previewModal');
+    const closePreview = document.getElementById('closePreview');
+
+    // Function to render Markdown
+    function renderMarkdown() {
+        const markdown = contentTextarea.value;
+        const html = marked.parse(markdown);
+        previewContent.innerHTML = html;
+    }
+
+    previewButton.addEventListener('click', () => {
+        renderMarkdown();
+        markdownPreview.classList.remove('hidden');
+    });
+
+    closePreview.addEventListener('click', () => {
+        markdownPreview.classList.add('hidden');
+    });
+</script>
 {% endblock %}

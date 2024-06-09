@@ -2,17 +2,15 @@ import os
 from flask import Flask, render_template, request, g, redirect, url_for
 import markdown
 import mistune
-import mysql.connector
-from datetime import datetime 
+from datetime import datetime
+import libsql_experimental as libsql
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'your_strong_secret_key')
 
-# Database configuration (from environment variables)
-app.config['DATABASE_HOST'] = os.environ.get('DATABASE_HOST')
-app.config['DATABASE_NAME'] = os.environ.get('DATABASE_NAME')
-app.config['DATABASE_USER'] = os.environ.get('DATABASE_USER')
-app.config['DATABASE_PASSWORD'] = os.environ.get('DATABASE_PASSWORD')
+# Turso database configuration (from environment variables)
+app.config['TURSO_DB_URL'] = os.environ.get('TURSO_DB_URL')
+app.config['TURSO_AUTH_TOKEN'] = os.environ.get('TURSO_AUTH_TOKEN')
 
 @app.teardown_appcontext
 def close_connection(exception):
@@ -22,29 +20,33 @@ def close_connection(exception):
 
 def get_db():
     if 'db' not in g:
-        g.db = mysql.connector.connect(
-            host=app.config['DATABASE_HOST'],
-            port=54714,
-            database=app.config['DATABASE_NAME'],
-            user=app.config['DATABASE_USER'],
-            password=app.config['DATABASE_PASSWORD']
+        g.db = libsql.connect(
+            database=app.config['TURSO_DB_URL'],
+            auth_token=app.config['TURSO_AUTH_TOKEN']
         )
     return g.db
 
 
 def get_posts():
     db = get_db()
-    cursor = db.cursor(dictionary=True)  # Use dictionary=True
-    cursor.execute('SELECT * FROM posts ORDER BY created_at DESC')
-    posts = cursor.fetchall()
+
+    cursor = db.execute("PRAGMA table_info(posts)")
+    columns = [row[1] for row in cursor.fetchall()]  # Extract column names
+
+    rows = db.execute('SELECT * FROM posts ORDER BY created_at ASC').fetchall()
+    posts = [dict(zip(columns, row)) for row in rows] 
     return posts
 
 def get_post(post_id):
     db = get_db()
-    cursor = db.cursor(dictionary=True)  # Use dictionary=True
-    cursor.execute('SELECT * FROM posts WHERE id = %s', (post_id,))
-    post = cursor.fetchone()
-    return post
+
+    cursor = db.execute("PRAGMA table_info(posts)")
+    columns = [row[1] for row in cursor.fetchall()] 
+
+    row = db.execute('SELECT * FROM posts WHERE id = ?', (post_id,)).fetchone()
+    if row:
+        return dict(zip(columns, row)) 
+    return None
 
 @app.route('/post/<int:post_id>')
 def show_post(post_id):
@@ -52,15 +54,10 @@ def show_post(post_id):
     if post:
         post['content'] = mistune.markdown(post['content'])
 
-        # Get previous and next post IDs
         db = get_db()
-        cursor = db.cursor()
-        cursor.execute('SELECT id FROM posts WHERE id < %s ORDER BY id DESC LIMIT 1', (post_id,))
-        prev_post_id = cursor.fetchone()
-        cursor.execute('SELECT id FROM posts WHERE id > %s ORDER BY id ASC LIMIT 1', (post_id,))
-        next_post_id = cursor.fetchone()
+        prev_post_id = db.execute('SELECT id FROM posts WHERE id < ? ORDER BY id DESC LIMIT 1', (post_id,)).fetchone()
+        next_post_id = db.execute('SELECT id FROM posts WHERE id > ? ORDER BY id ASC LIMIT 1', (post_id,)).fetchone()
 
-        # Pass post IDs to the template
         return render_template('post.html', post=post, post_id=post_id,
                                prev_post_id=prev_post_id[0] if prev_post_id else None,
                                next_post_id=next_post_id[0] if next_post_id else None)
@@ -75,9 +72,8 @@ def create_post():
         content = request.form['content']
 
         db = get_db()
-        cursor = db.cursor()
-        cursor.execute(
-            'INSERT INTO posts (title, short_desc, content) VALUES (%s, %s, %s)',
+        db.execute(
+            'INSERT INTO posts (title, short_desc, content) VALUES (?, ?, ?)',
             (title, short_desc, content)
         )
         db.commit()
@@ -96,9 +92,8 @@ def edit_post(post_id):
             content = request.form['content']
 
             db = get_db()
-            cursor = db.cursor()
-            cursor.execute(
-                'UPDATE posts SET title = %s, short_desc = %s, content = %s WHERE id = %s',
+            db.execute(
+                'UPDATE posts SET title = ?, short_desc = ?, content = ? WHERE id = ?',
                 (title, short_desc, content, post_id)
             )
             db.commit()
@@ -108,14 +103,10 @@ def edit_post(post_id):
             return render_template('edit.html', post=post)
     else:
         return 'Post not found', 404
-    
 
 @app.context_processor  
 def inject_year():
     return dict(year=datetime.now().year) 
-
-
-
 
 @app.route('/')
 def index():

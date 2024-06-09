@@ -4,3 +4,4 @@ mistune
 mysql.connector
 gunicorn
 datetime
+libsql_experimental

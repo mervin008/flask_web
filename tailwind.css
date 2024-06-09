@@ -37,8 +37,9 @@ p {
     @apply bg-violet-100; /* Background color on hover */ 
 }
 
-.btn-circle {
-    @apply rounded-full h-10 w-10 flex items-center justify-center;
+
+.scroll-top-button {
+    @apply p-2 rounded-full bg-transparent text-violet-500 ring-2 ring-violet-400 shadow-md   ;
 }
 
 .btn-preview {

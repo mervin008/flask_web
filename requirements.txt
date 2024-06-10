@@ -5,3 +5,4 @@ mysql.connector
 gunicorn
 datetime
 libsql_experimental
+slugify

@@ -1,30 +1,43 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<article class="prose lg:prose-xl max-w-none mx-auto bg-white p-8 rounded-lg shadow-md">
-    <div class="flex justify-end mb-4">
-        <a href="/edit/{{ post_id }}" class="btn post-link flex items-center space-x-2">
-            <i class="fas fa-edit"></i> <span>Edit Post</span>
-        </a>
-    </div>
-    <h1 class="text-4xl font-bold mb-4">{{ post['title'] }}</h1>
-    <p class="text-gray-600 mb-6">{{ post['short_desc'] }}</p>
-    <div class="content">
-        {{ post['content'] | safe }}
-    </div>
+    <article class="prose lg:prose-xl max-w-none mx-auto bg-white p-8 rounded-lg shadow-md">
+        <div class="flex justify-end mb-4">
+            <a href="/edit/{{ post_slug }}" class="btn btn-primary post-link flex items-center space-x-2"> 
+                <i class="fas fa-edit"></i> <span>Edit Post</span> 
+            </a>
+        </div>
+        <h1 class="text-4xl font-bold mb-4">{{ post['title'] }}</h1>
+        <p class="text-gray-600 mb-6"><i>{{ post['short_desc'] }}</i></p>
+        <div class="content">
+            {{ post['content'] | safe }}
+        </div>
 
-    <div class="flex justify-between mt-8">
-        {% if prev_post_id %}
-        <a href="/post/{{ prev_post_id }}" class="btn btn-secondary post-link flex items-center space-x-2">
-            <i class="fas fa-arrow-left mr-1"></i> Previous Post
-        </a>
-        {% endif %}
+        <div class="mt-4">
+            <span class="text-gray-700 font-semibold">Tags: </span>
+            {% for tag in post['tags'].split(',') if tag.strip() %}
+                <a href="/tag/{{ tag.strip() }}" class="inline-block bg-violet-100 text-violet-700 no-underline rounded-full px-3 py-1 text-sm font-semibold mr-2"> 
+                    {{ tag.strip()  }}
+                </a>
+            {% endfor %}
+        </div>
+        <hr class="post-separator"> 
+    </article>
 
-        {% if next_post_id %}
-        <a href="/post/{{ next_post_id }}" class="btn btn-secondary post-link flex items-center space-x-2">
-            Next Post <i class="fas fa-arrow-right ml-1"></i>
-        </a>
-        {% endif %}
+    <div class="mt-8 flex justify-between items-center">
+        <div>
+            {% if prev_post_slug %}
+            <a href="/post/{{ prev_post_slug }}" class="btn btn-secondary post-link flex items-center space-x-2">
+                <i class="fas fa-arrow-left mr-1"></i> Previous Post
+            </a>
+            {% endif %}
+        </div>
+        <div>
+            {% if next_post_slug %}
+            <a href="/post/{{ next_post_slug }}" class="btn btn-secondary post-link flex items-center space-x-2">
+                Next Post <i class="fas fa-arrow-right ml-1"></i>
+            </a>
+            {% endif %}
+        </div>
     </div>
-</article>
 {% endblock %}

@@ -16,7 +16,7 @@
         <div class="mt-4">
             <span class="text-gray-700 font-semibold">Tags: </span>
             {% for tag in post['tags'].split(',') if tag.strip() %}
-                <a href="/tag/{{ tag.strip() }}" class="inline-block bg-violet-100 text-violet-700 no-underline rounded-full px-3 py-1 text-sm font-semibold mr-2"> 
+                <a href="/tag/{{ tag.strip() }}" class="inline-block bg-violet-100 text-violet-700 no-underline rounded-full px-3 py-1 text-sm font-semibold mr-2 mb-1"> 
                     {{ tag.strip()  }}
                 </a>
             {% endfor %}

@@ -6,3 +6,4 @@ gunicorn
 datetime
 libsql_experimental
 slugify
+python-slugify

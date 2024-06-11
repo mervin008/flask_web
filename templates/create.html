@@ -24,7 +24,6 @@
             <input type="text" name="tags" id="tags"
                    class="shadow appearance-none border border-gray-300 rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring focus:ring-violet-300"
                    value="">
-            <div id="tag-preview" class="mt-2"></div>
         </div>
 
         <div class="mb-4 flex items-center">
@@ -58,18 +57,12 @@
     </div>
 </div>
 
-
-<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script>
     const contentTextarea = document.getElementById('content');
     const previewContent = document.getElementById('preview-content');
     const previewButton = document.getElementById('previewButton');
     const markdownPreview = document.getElementById('previewModal');
     const closePreview = document.getElementById('closePreview');
-
-    const tagsInput = document.getElementById('tags');
-    const tagPreview = document.getElementById('tag-preview');
-
     // Function to render Markdown
     function renderMarkdown() {
         const markdown = contentTextarea.value;
@@ -86,27 +79,5 @@
         markdownPreview.classList.add('hidden');
     });
 
-    const tagsInput = document.getElementById('tags');
-    const tagPreview = document.getElementById('tag-preview');
-
-    // Function to update the tag preview
-    function updateTagPreview() {
-        const tags = tagsInput.value.split(',').map(tag => tag.trim().capitalize()).filter(tag => tag); // Remove empty tags
-        tagPreview.innerHTML = tags.map(tag => `
-            <span class="inline-block bg-violet-200 text-violet-700 rounded-lg px-3 py-1 text-sm font-semibold mr-2 mb-2 no-underline hover:bg-violet-300">
-                ${tag}
-            </span>
-        `).join('');
-    }
-
-    // Initial tag preview for edit.html (if there are existing tags)
-    updateTagPreview();
-
-    tagsInput.addEventListener('keyup', (event) => {
-        if (event.key === 'Enter' || event.key === ',') {
-            updateTagPreview();
-            tagsInput.value = ''; // Clear the input field
-        }
-    });
 </script>
 {% endblock %}

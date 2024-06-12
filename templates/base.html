@@ -6,40 +6,63 @@
     <title>Tech Insights</title> 
     <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
     <script src="https://unpkg.com/htmx@latest"></script>
+    <script src="https://unpkg.com/htmx.org@1.9.2"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://kit.fontawesome.com/655ccc964c.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
-<body class="bg-gray-50 font-sans flex flex-col min-h-screen" id="bodyElement"> 
-    <header class="bg-violet-500 py-4 shadow-md">
-        <div class="container mx-auto px-4 flex items-center justify-between">
-            <a href="/" class="text-white text-2xl font-bold">Tech Insights</a>
-                <ul class="flex space-x-4">
-                    <li>
-                        <a href="/create" class="text-white flex items-center space-x-2">
-                            <i class="fa-solid  fa-plus"></i> <span>Post</span>
-                        </a>
-                    </li>
-                </ul>
+<body class="bg-violet-50 font-sans flex flex-col min-h-screen" id="bodyElement"> 
+    <header class="py-4"> 
+        <div class="container mx-auto px-4 flex items-center justify-center"> 
+            <div class="pill-nav relative px-16 py-3 text-lg w-9/12">
+                <a href="/" class="text-gray-800 text-xl font-bold hover:text-violet-400">Tech Insights</a>
+                <button id="search-toggle" class="pill-button absolute right-4 ">
+                    <i class="fas fa-search text-gray-800 hover:text-violet-400"></i> 
+                </button>
+            </div>
         </div>
     </header>
+
+    <div id="searchModal" class="fixed inset-0 z-10 bg-black bg-opacity-50 flex items-center justify-center hidden">
+        <div class="bg-white rounded-lg shadow-lg p-6 max-w-xl w-full relative" style="max-height: 90vh;"> 
+            <div class="flex items-center justify-between mb-4"> 
+                <h3 class="text-xl font-bold text-gray-800">Search</h3>
+                <button type="button" id="closeSearch" class="text-gray-600 hover:text-gray-800 focus:outline-none">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form action="/search" method="GET" 
+                  hx-get="/search" 
+                  hx-trigger="keyup changed delay:500ms" 
+                  hx-target="#search-results" 
+                  class="relative">
+                <input type="text" name="query" placeholder="Search Articles..." 
+                       class="rounded-lg px-3 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-violet-300 w-full pr-12">
+                <button type="submit" class="absolute inset-y-0 right-0 flex items-center pr-3">
+                    <i class="fas fa-search text-violet-500"></i>
+                </button>
+            </form>
+
+            <div id="search-results" class="container mx-auto px-4 py-8"> </div> </div>
+    </div>
+
 
     <main class="container mx-auto px-4 py-8 flex-grow"> 
         {% block content %}
         {% endblock %}
     </main>
 
+    <button id="scrollToTopButton" class="hidden fixed bottom-4 right-4 scroll-top-button">
+        <i class="fas fa-arrow-up"></i> 
+    </button>
+
     <footer class="bg-gray-800 text-white py-4 text-center mt-auto">
         <div class="container mx-auto px-4">
             © {{ year }} Mervin’s Tech Insights
         </div>
     </footer>
-
-    <button id="scrollToTopButton" class="hidden fixed bottom-4 right-4 scroll-top-button">
-        <i class="fas fa-arrow-up"></i> 
-    </button>
     <script>
         // Scroll to Top Functionality
         const scrollToTopButton = document.getElementById('scrollToTopButton');
@@ -57,6 +80,20 @@
                 top: 0,
                 behavior: 'smooth' 
             });
+        });
+    </script>
+    <script>
+        const searchToggle = document.getElementById('search-toggle');
+        const searchModal = document.getElementById('searchModal');
+        const closeSearch = document.getElementById('closeSearch');
+    
+        searchToggle.addEventListener('click', () => {
+            searchModal.classList.remove('hidden');
+            htmx.trigger(searchBar, 'keyup'); 
+        });
+    
+        closeSearch.addEventListener('click', () => {
+            searchModal.classList.add('hidden');
         });
     </script>
 

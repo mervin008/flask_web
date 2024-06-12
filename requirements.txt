@@ -7,3 +7,6 @@ datetime
 libsql_experimental
 slugify
 python-slugify
+
+
+# npx tailwindcss -i tailwind.css -o ./static/css/style.css --watch

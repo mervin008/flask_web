@@ -117,6 +117,32 @@ def edit_post(post_slug):
     else:
         return 'Post not found', 404
 
+@app.route('/search')
+def search():
+    query = request.args.get('query', '')
+    db = get_db()
+    cursor = db.execute("PRAGMA table_info(postslug)")
+    columns = [row[1] for row in cursor.fetchall()]
+    # Search in title, short_desc, content, and tags
+    rows = db.execute(
+        'SELECT * FROM postslug WHERE title LIKE ? OR short_desc LIKE ? OR content LIKE ? OR tags LIKE ?',
+        ('%' + query + '%', '%' + query + '%', '%' + query + '%', '%' + query + '%')
+    ).fetchall()
+    search_results = [dict(zip(columns, row)) for row in rows]
+
+    return render_template('search.html', query=query, results=search_results)
+
+@app.route('/tag/<string:tag_name>')
+def tag(tag_name):
+    db = get_db()
+    cursor = db.execute("PRAGMA table_info(postslug)")
+    columns = [row[1] for row in cursor.fetchall()]
+    rows = db.execute('SELECT * FROM postslug WHERE tags LIKE ?', ('%' + tag_name + '%',)).fetchall()
+    tagged_posts = [dict(zip(columns, row)) for row in rows]
+
+    return render_template('tag.html', tag=tag_name, posts=tagged_posts)
+
+
 @app.context_processor 
 def inject_year():
     return dict(year=datetime.now().year) 

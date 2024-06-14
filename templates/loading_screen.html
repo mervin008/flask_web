@@ -1,0 +1,30 @@
+<div id="loading-screen" class="fixed inset-0 bg-violet-50 z-50 flex items-center justify-center">
+    <div class="container mx-auto px-1 py-1 flex flex-col gap-8 w-full md:w-4/5"> 
+        <div class="container mx-auto px-4 py-8 animate-pulse">
+
+            <div class="flex items-center justify-between mb-4">
+                <div class="h-8 bg-violet-400 rounded-lg w-1/2"></div> 
+                <div class="h-8 bg-violet-400 rounded-lg w-1/4"></div> 
+            </div>
+
+            {% for i in range(5) %}
+                <div class="group relative block bg-white rounded-lg shadow-md p-6 mb-4 animate-pulse">
+                    <div class="h-6 bg-violet-400 rounded w-3/4 mb-2"></div> 
+                    <div class="h-3 bg-violet-400 rounded w-full mb-3"></div> 
+                    <div class="flex gap-2">
+                        <div class="h-4 bg-violet-400 rounded w-20"></div>
+                        <div class="h-4 bg-violet-400 rounded w-24"></div>
+                        <div class="h-4 bg-violet-400 rounded w-16"></div>
+                    </div>
+                </div>
+            {% endfor %}
+
+            <div class="h-6 bg-violet-400 rounded-lg mb-4"></div>
+            <div class="flex flex-wrap gap-2">
+                {% for i in range(5) %}
+                    <div class="h-4 bg-violet-400 rounded-lg w-24"></div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>

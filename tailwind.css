@@ -78,3 +78,13 @@ p {
 .pill-button {
     @apply bg-transparent px-4 py-2 rounded-full;
 }
+
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: .5;
+  }
+}

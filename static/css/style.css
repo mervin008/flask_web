@@ -1740,6 +1740,7 @@ select {
 body {
   font-family: 'Merriweather', serif;
   line-height: 1.6;
+  font-size: 0.9rem;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -1749,17 +1750,17 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 h1 {
-  font-size: 2.5rem;
+  font-size: 2.2rem;
   margin-bottom: 1rem;
 }
 
 h2 {
-  font-size: 2rem;
+  font-size: 1.75rem;
   margin-bottom: 0.75rem;
 }
 
 p {
-  font-size: 1.125rem;
+  font-size: 1rem;
   margin-bottom: 1rem;
 }
 

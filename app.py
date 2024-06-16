@@ -6,6 +6,8 @@ from datetime import datetime
 import libsql_experimental as libsql
 from slugify import slugify  
 from collections import defaultdict
+from flask import jsonify
+
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'your_strong_secret_key')
@@ -48,6 +50,32 @@ def get_post_by_slug(slug):  # Define the function
         return dict(zip(columns, row)) 
     return None
 
+def get_related_posts(current_post_title, num_related=6):
+    current_post = get_post_by_slug(slugify(current_post_title))
+    if not current_post:
+        return []
+
+    current_tags = set(current_post['tags'].split(','))
+
+    related_posts = []
+    for post in get_posts():
+        if post['title'] == current_post_title:
+            continue  # Skip the current post
+
+        post_tags = set(post['tags'].split(','))
+        common_tags = current_tags.intersection(post_tags)
+        if common_tags:
+            related_posts.append({
+                'title': post['title'],
+                'slug': post['slug'],
+                'common_tags': list(common_tags)
+            })
+
+    # Sort related posts by number of common tags
+    related_posts.sort(key=lambda x: len(x['common_tags']), reverse=True)
+    return related_posts[:num_related]
+
+
 @app.route('/post/<string:post_slug>')
 def show_post(post_slug):
     post = get_post_by_slug(post_slug)
@@ -66,9 +94,12 @@ def show_post(post_slug):
         cursor.execute('SELECT title FROM postslug WHERE created_at > ? ORDER BY created_at ASC LIMIT 1', (post['created_at'],))
         next_post_title = cursor.fetchone()
         next_post_slug = slugify(next_post_title[0]) if next_post_title else None
+        
+        related_posts = get_related_posts(post['title'])
 
         return render_template('post.html', post=post, post_slug=post_slug,
-                               prev_post_slug=prev_post_slug, next_post_slug=next_post_slug)
+                           prev_post_slug=prev_post_slug, next_post_slug=next_post_slug,
+                           related_posts=related_posts)
     else:
         return 'Post not found', 404
 
@@ -91,6 +122,8 @@ def create_post():
 
         return redirect(url_for('show_post', post_slug=slug)) 
     return render_template('create.html')
+
+
 
 @app.route('/edit/<string:post_slug>', methods=['GET', 'POST'])
 def edit_post(post_slug):
